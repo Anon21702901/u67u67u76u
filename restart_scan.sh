@@ -4,35 +4,33 @@
 # Configuration
 # ==============================
 SCREEN_NAME="scan"
-INTERVAL=400
-LOG_FILE="restart_scan.log"
+INTERVAL=600
+BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG="restart_scan.log"
 
-echo "========================================" | tee -a "$LOG_FILE"
-echo "$(date) - HARD restart watchdog started" | tee -a "$LOG_FILE"
-echo "Screen name : $SCREEN_NAME" | tee -a "$LOG_FILE"
-echo "Interval    : $INTERVAL seconds" | tee -a "$LOG_FILE"
-echo "========================================" | tee -a "$LOG_FILE"
+echo "$(date) - HARD restart watchdog started" | tee -a "$LOG"
 
 while true; do
-    echo "$(date) - FORCE stopping old scan instances..." | tee -a "$LOG_FILE"
+    echo "$(date) - FORCE killing old scan processes..." | tee -a "$LOG"
 
     # Kill screen session (if exists)
     screen -S "$SCREEN_NAME" -X quit 2>/dev/null
 
-    # Kill ANY leftover scan.sh processes
-    pkill -9 -f "./scan.sh" 2>/dev/null
-    pkill -9 -f "scan.sh" 2>/dev/null
+    # Kill EVERYTHING started by scan.sh (zmap, awk, android)
+    pkill -9 -f "$BASE_DIR/scan.sh" 2>/dev/null
+    pkill -9 -f "$BASE_DIR/android" 2>/dev/null
+    pkill -9 -f "zmap -p 5555" 2>/dev/null
+    pkill -9 -f "awk {print \$1\":5555\"}" 2>/dev/null
 
     sleep 2
 
-    echo "$(date) - Starting scan.sh in fresh screen session..." | tee -a "$LOG_FILE"
+    echo "$(date) - Starting fresh scan..." | tee -a "$LOG"
 
-    # Start clean
-    screen -dmS "$SCREEN_NAME" bash -c "./scan.sh | tee -a scan.log"
+    # Start scan.sh in detached screen
+    screen -dmS "$SCREEN_NAME" bash -c "cd '$BASE_DIR' && ./scan.sh"
 
-    echo "$(date) - scan.sh started" | tee -a "$LOG_FILE"
-    echo "$(date) - Will HARD restart again in $INTERVAL seconds" | tee -a "$LOG_FILE"
-    echo "----------------------------------------" | tee -a "$LOG_FILE"
+    echo "$(date) - Scan running, next restart in $INTERVAL seconds" | tee -a "$LOG"
+    echo "----------------------------------------" | tee -a "$LOG"
 
     sleep "$INTERVAL"
 done
