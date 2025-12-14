@@ -4,7 +4,7 @@
 # Configuration
 # ==============================
 SCREEN_NAME="scan"
-INTERVAL=600
+INTERVAL=400
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="restart_scan.log"
 
