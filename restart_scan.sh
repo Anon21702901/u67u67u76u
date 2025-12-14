@@ -1,10 +1,10 @@
 #!/bin/bash
 
 SCREEN_NAME="scan"
-INTERVAL=600
+INTERVAL=400
 
 while true; do
-    echo "Starte scan.sh in screen..."
+    echo "s scan.sh in screen..."
     screen -dmS $SCREEN_NAME ./scan.sh
 
     sleep $INTERVAL
